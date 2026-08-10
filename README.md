@@ -8,7 +8,7 @@ Each repository should have an `AGENTS.md` for project instructions. Projects wi
 
 # Examples
 
-- [Quality-first Codex subagents](examples/quality-first-subagents/README.md): route bounded work to GPT-5.6 Terra while GPT-5.6 Sol retains architecture, integration, and consequential review.
+- [Quality-first Codex subagents](examples/quality-first-subagents/README.md): dated research notes, current Luna limitations, and a copyable Sol/Terra setup for bounded delegation.
 - [Dictation and token discipline](examples/dictation-token-discipline/README.md): turn repetitive or dictated requests into compact internal task contracts without dropping requirements.
 
 # Tips
