@@ -1,10 +1,15 @@
-# agentic-ai
-A collection of tips and best practices for agentic AI development workflows
+# Agentic AI
+
+A collection of practical, copyable patterns for agentic AI development workflows.
 
 # Basic setup
 
-Each repo should have an AGENTS.md for instructioms
-And a DESIGN.md describing the design system 
+Each repository should have an `AGENTS.md` for project instructions. Projects with a user interface should also document their design system, for example in `DESIGN.md`.
+
+# Examples
+
+- [Quality-first Codex subagents](examples/quality-first-subagents/README.md): route bounded work to GPT-5.6 Terra while GPT-5.6 Sol retains architecture, integration, and consequential review.
+- [Dictation and token discipline](examples/dictation-token-discipline/README.md): turn repetitive or dictated requests into compact internal task contracts without dropping requirements.
 
 # Tips
 
@@ -12,7 +17,7 @@ And a DESIGN.md describing the design system
 
 Add this to AGENTS.md to make Codex great at UI development, which is typically where it struggles. The idea is to use image generation to create a design mock and then have Codex implement that. Instead of relying on Codex to come up with the design on the fly which usually leads to subpar results.
 
-```
+```markdown
 ## UI Design Workflow
 
 For any work that materially changes a screen’s visual design, layout, hierarchy, or interaction polish, create a visual target before implementation.
@@ -46,20 +51,4 @@ Skip or simplify this workflow for:
 - mechanical refactors
 
 The image mock is a visual spec, not production code. The final implementation must still be responsive, accessible, performant, and consistent with the existing app.
-```
-
-## Save tokens/quota with efficient use of subagents
-
-Add this to your global AGENTS.md and Codex will use cheaper models as subagents for the implementation work, while still the latest extra high model owning and planning the work:
-
-```
-# Global Codex Guidance
-
-## Subagent working model
-
-- For substantial implementation work, first make a concise technical plan.
-- When the work can be split into independent, well-scoped tasks with disjoint file ownership, delegate implementation, exploration, or verification to subagents using faster/lower-cost models such as `gpt-5.3-codex-spark` or `gpt-5.4-mini` where appropriate.
-- Keep the main agent responsible for architecture, coordination, final quality, final review, integration, and verification of the overall delivery.
-- The main agent should actively guide, review, and correct faster/lower-capability subagents rather than treating their output as automatically complete.
-- Do not use subagents for tiny tasks, tightly coupled changes, risky security-sensitive work, or ambiguous debugging where the main plan is likely to change.
 ```
