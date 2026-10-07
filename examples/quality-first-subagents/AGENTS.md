@@ -8,18 +8,19 @@
 
 ## Model and reasoning routing
 
-- Use `gpt-5.6-terra` with `medium` reasoning for exploration, documentation, focused test or log analysis, mechanical edits, and precisely specified work.
-- Use `gpt-5.6-terra` with `high` reasoning for bounded implementation, understood bug fixes, stable-interface refactors, and tool-heavy work where mistakes would be costly.
-- Use `gpt-5.6-sol` with `high` reasoning for architecture, decomposition, ambiguous root-cause analysis, integration decisions, and consequential final review.
-- Escalate to `gpt-5.6-sol` with `xhigh` only for difficult or high-risk work such as authentication, concurrency, migrations, data-loss hazards, or an unresolved failure after a strong first attempt.
+- Routing policy refreshed 2026-10-07. Current Codex documentation supports these model choices; this is not a runtime certification for every account or build. See the example README for sources and verification steps.
+- Use `gpt-6.1-sol` with `medium` reasoning as the conservative child default for bounded exploration, documentation, and precisely specified work.
+- Use `gpt-6.1-sol` with `high` reasoning for implementation, architecture, decomposition, ambiguous root-cause analysis, integration decisions, and consequential final review.
+- Use `gpt-6-luna` with `high` reasoning for narrow extraction, inventories, focused scans, or mechanical edits only after the actual child route and representative acceptance checks pass. Keep broader implementation and consequential review on Sol.
+- Escalate to `gpt-6.1-sol` with `xhigh` only for difficult or high-risk work such as authentication, concurrency, migrations, data-loss hazards, or an unresolved failure after a strong first attempt.
 - Reserve `max` for exceptional, measured need. Never use it by default.
-- Select the child model and effort explicitly when the spawn interface supports it. Otherwise use the configured Terra/medium default.
-- Do not silently substitute a more expensive route.
+- Select the child model and effort explicitly when supported. Check effective child settings and any custom-agent overrides. If a required route is unavailable, keep the task with the capable main agent or report the limitation; do not silently substitute a model.
+- Treat API availability, documented Codex support, exposed spawn choices, and successful execution as separate evidence. Never generalize a dated missing model choice into a permanent exclusion.
 
 ## Context and token discipline
 
-- Always set `fork_turns="none"` for independent work.
-- Use a small recent-turn fork only for a genuine continuation that cannot be briefed safely. Never use full conversation history for convenience.
+- Start independent work without inherited conversation history, using `fork_turns="none"` where the spawn interface supports it. Check its actual schema instead of assuming every Codex client exposes the same arguments.
+- Reuse the existing child for a genuine continuation. Do not invent partial-history fork modes or use full conversation history for convenience.
 - For long, repetitive, or dictated requests, silently extract a compact task contract containing the goal, constraints, relevant details, acceptance checks, and genuine ambiguities.
 - Preserve every explicit fact, filename, number, preference, caveat, and correction. Add nothing and do not weaken requirements.
 - Do not echo the task contract unless it is needed for clarification.
