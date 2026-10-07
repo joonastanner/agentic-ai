@@ -1,37 +1,37 @@
 # Quality-first Codex subagents
 
-This example routes bounded work to GPT-5.6 Terra while GPT-5.6 Sol retains architectural judgment, integration, and consequential review.
+This example uses GPT-6.1 Sol for architecture, implementation, integration, and consequential review, with an opt-in GPT-6 Luna route for narrow, verifiable child work. The copyable baseline keeps children on Sol until the cheaper route passes local checks.
 
 It is designed to reduce cost and duplicated context without assuming that adding agents automatically saves tokens. Multi-agent workflows can consume more tokens when tasks are small, tightly coupled, poorly decomposed, or repeatedly briefed.
 
-## Research status: August 10, 2026
+## Research status: October 7, 2026
 
-The following separates official model capabilities from behavior observed in the tested Codex harness. That distinction matters: a model can exist in the API catalog without being selectable as a Codex subagent.
+Original harness research: **August 10, 2026**. This refresh checks current official documentation; it does **not** claim a new local Codex CLI runtime test. API support, documented Codex support, account access, and observed child execution are distinct.
 
 ### What is officially established
 
-- [OpenAI describes GPT-5.6 Sol](https://developers.openai.com/api/docs/guides/latest-model) as the frontier route, Terra as the intelligence/cost balance, and Luna as the efficient high-volume route.
-- [The Luna model page](https://developers.openai.com/api/docs/models/gpt-5.6-luna) says Luna roughly corresponds to the older nano tier. It supports reasoning, function calling, structured outputs, image input, and the standard Responses API tools, including hosted shell, apply patch, skills, computer use, MCP, and tool search.
-- Luna's lower per-token price can reduce cost. It does not inherently reduce the number of tokens a workflow consumes.
-- OpenAI recommends starting reasoning at a representative baseline and testing lower or higher effort. It does not claim that maximum reasoning, Luna, or multi-agent orchestration preserves quality automatically.
-- OpenAI's documented multi-agent feature is beta in the Responses API. That does not prove identical model-routing behavior in every Codex desktop or CLI build.
+- [Current model guidance](https://developers.openai.com/api/docs/guides/latest-model) distinguishes Astra for the hardest work, GPT-6.1 Sol for complex work at lower cost, and GPT-6 Luna for focused, high-volume tasks. The old description of GPT-5.6 Luna as a nano-like tier is not a capability assessment of GPT-6 Luna.
+- [Codex model guidance](https://learn.chatgpt.com/docs/models) recommends GPT-6.1 Sol when available and Luna for focused work. GPT-6 Sol remains listed as available; this example follows the newer recommendation. Access still depends on account, client, and workspace settings.
+- [Codex subagent guidance](https://learn.chatgpt.com/docs/agent-configuration/subagents#choosing-models-and-reasoning) explicitly recommends `gpt-6.1-sol` for demanding agents and `gpt-6-luna` for narrow agents, with `high` as a Luna starting point. This is Codex-specific evidence, independent of the API releases.
+- [Responses API multi-agent](https://developers.openai.com/api/docs/guides/responses-multi-agent) is documented in beta for GPT-6.1 Sol and all GPT-5.6 models. Its documented children share the request's model and tools. This does not establish mixed-model Codex routing, and this guide's TOML is not API request configuration.
+- The [GPT-6.1 Sol](https://developers.openai.com/api/docs/models/gpt-6.1-sol) and [GPT-6 Luna](https://developers.openai.com/api/docs/models/gpt-6-luna) pages document their API capabilities and reasoning levels. API effort defaults and Codex client defaults need not match. Neither maximum effort nor a model release establishes quality parity on your workload.
 
-### What does not currently work in the tested Codex setup
+### Verification status
 
-The tested environment used `codex-cli 0.147.0-alpha.6.5` on August 10, 2026.
+| Checked | Surface / version | Evidence and limit |
+| --- | --- | --- |
+| 2026-08-10 | `codex-cli 0.147.0-alpha.6.5` | Original repository report: spawn overrides exposed GPT-5.6 Sol and Terra, not GPT-5.6 Luna; the Sol/Terra config worked there. Historical, not re-tested in this refresh. |
+| 2026-10-07 | Responses API documentation | GPT-6.1 Sol multi-agent support is documented. This does not verify a Codex spawn target or a mixed-model API route. |
+| 2026-10-07 | Current Codex documentation | GPT-6.1 Sol / GPT-6 Luna child routes and the bundled config keys are documented. This is not an account-specific execution result. |
+| 2026-10-07 | Local CLI runtime | Not tested: no `codex` executable in the audit workspace. Effective child models, effort, and quality remain to be checked in the adopting environment. |
 
-- Its Codex subagent spawn surface exposed explicit model overrides for `gpt-5.6-sol` and `gpt-5.6-terra`, but not `gpt-5.6-luna`.
-- Adding “use Luna” to `AGENTS.md` cannot make an unavailable spawn target callable. `AGENTS.md` guides behavior; the harness controls which models can actually be selected.
-- API/Playground access to Luna does not establish Luna availability inside Codex subagents. These are separate execution surfaces.
-- A Luna default or explicit Luna child route has therefore not been verified in this Codex build. The copyable configuration below uses Terra rather than presenting an untested Luna route as working.
-- Per-spawn reasoning overrides are behavioral requests, not proof of the effective runtime. Consequential tasks should inspect child metadata when the harness exposes it.
-- The `[agents]` configuration used below works in the tested alpha build, but Codex settings can change. Confirm the keys and effective child metadata after upgrades.
+The August exclusion applied to **GPT-5.6 Luna in that alpha build**. It is not a permanent rule about Luna or later Codex releases. `AGENTS.md` cannot expose an unavailable model or bypass workspace access.
 
-### Why Luna is not the default here
+### Why Luna is opt-in here
 
-Luna is aimed at cost-sensitive, high-volume workloads and is closer to a nano tier. That makes it a candidate for classification, extraction, formatting, inventorying, or other mechanically verifiable work—not the safest untested default for implementation, commits, architecture, ambiguous debugging, or consequential review.
+Current Codex documentation supports Luna for narrow subagents. This example still starts with Sol children because no repository-specific comparison was run for this refresh. That is a quality policy, not an availability claim. Try Luna on extraction, inventories, focused scans, and mechanical edits with explicit acceptance checks; retain Sol for broader implementation and consequential judgment until evaluation justifies a change.
 
-Even after Codex exposes Luna as a child override, introduce it only behind acceptance checks. A cheaper first pass can cost more overall when the main agent must rediscover context, repair defects, or repeat tests.
+A cheaper first pass can cost more overall when the main agent must rediscover context, repair defects, or repeat tests.
 
 Do not use a low-cost child as a “code committer.” Children should return scoped diffs and evidence; the main agent should inspect the integrated diff, run checks, and own staging and commits.
 
@@ -48,23 +48,36 @@ Do not use a low-cost child as a “code committer.” Children should return sc
 1. Merge [`config.toml`](config.toml) into `~/.codex/config.toml`. Do not overwrite unrelated settings.
 2. Copy [`AGENTS.md`](AGENTS.md) into `~/.codex/AGENTS.md` for global behavior, or merge it into a repository-root `AGENTS.md` for shared project behavior.
 3. Restart Codex after changing `config.toml`, then test in a new task.
-4. Confirm that the account and Codex build expose the configured models and agent settings. Do not silently substitute models.
+4. Complete the verification below before adopting the route. If a configured model is unavailable, retain a previously verified setup or deliberately select and verify an available alternative. Do not silently substitute models.
+
+This is a **local Codex client** setup. Copying TOML into a repository does not configure hosted ChatGPT Work. The [configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference) documents `model`, `model_reasoning_effort`, `agents.enabled`, `agents.default_subagent_model`, and `agents.default_subagent_reasoning_effort`.
+
+Explicit spawn settings override `[agents]` defaults. A [custom agent file](https://learn.chatgpt.com/docs/agent-configuration/subagents#custom-agents) can override both; inspect it when the effective model or effort differs. A prose request alone is not runtime evidence.
+
+### Verify after a model or client change
+
+- Record the date, `codex --version` (or app build), client, sign-in method, and relevant workspace restrictions. Check the actual spawn schema and supported efforts, not just the main model picker.
+- Run serial read-only checks on a known small file: one child using defaults, one explicit `gpt-6.1-sol` / `high` child, and, before enabling it, one `gpt-6-luna` / `high` child. Have each return a checkable inventory; do not allow edits or commits.
+- Record requested and effective model/effort from runtime metadata or logs, plus the check result. A child's self-reported identity is not proof. If metadata is unavailable, record **unverified**, not pass.
+- Keep a dated row with the build, route, evidence, and result beside the matrix above. Then run the representative quality comparison below before widening Luna's scope. A successful spawn establishes availability, not quality parity.
 
 ## Routing strategy
 
-- **Terra/medium:** exploration, documentation, focused log analysis, mechanical edits, and precisely specified work.
-- **Terra/high:** bounded implementation, understood bug fixes, stable-interface refactors, and costly tool-heavy work.
-- **Sol/high:** architecture, decomposition, ambiguous diagnosis, integration decisions, and consequential final review.
-- **Sol/xhigh:** authentication, concurrency, migrations, data-loss hazards, or a hard unresolved failure.
+These are this example's starting policies, not measured equivalence across model generations. Here **Sol** means `gpt-6.1-sol`; **Luna** means `gpt-6-luna`.
+
+- **Sol/medium:** conservative child default for bounded exploration, documentation, and precisely specified work.
+- **Luna/high, opt-in:** evaluated narrow extraction, inventories, focused scans, and mechanical edits.
+- **Sol/high:** implementation, architecture, decomposition, ambiguous diagnosis, integration decisions, and consequential final review.
+- **Sol/xhigh:** authentication, concurrency, migrations, data-loss hazards, or a hard unresolved failure, where supported.
 - **Max:** exceptional measured need only.
 
-Luna is deliberately excluded from the default. Add it only after the Codex harness actually exposes the route and representative evaluations show that it preserves quality for a narrower mechanical or high-volume workload.
+The config retains `high` for the main agent as an explicit quality preference. Tune effort on representative tasks; a familiar effort label does not guarantee equivalent behavior after a model upgrade. Astra is a documented option for harder work, but this example does not silently add an Astra escalation or claim it has been evaluated here.
 
 ## Where savings should come from
 
 ### Input tokens
 
-- Independent children use `fork_turns="none"` instead of receiving the full conversation.
+- Independent children use fresh context, with `fork_turns="none"` when the actual spawn interface supports it. Do not assume that argument or partial-history modes exist in every client.
 - Children receive compact task contracts rather than raw dictated or repetitive requests.
 - Briefs point to canonical files instead of pasting source, logs, diffs, or global instructions.
 - One child is reused for follow-up work in the same subsystem.
@@ -79,7 +92,7 @@ These rules reduce duplicated subagent input. They cannot remove tokens from the
 
 ### Cost
 
-Terra has a lower per-token price than Sol. Model routing therefore saves cost more reliably than it saves raw token count.
+The Sol-only baseline makes no cross-model cost-saving claim. GPT-6 Luna's documented API token prices are lower than GPT-6.1 Sol's; compare the linked model pages for current rates. Lower rates do not mean fewer tokens or a cheaper completed task after rework. For ChatGPT-authenticated Codex, measure the applicable plan usage rather than treating API prices as your bill.
 
 ## Quality gates
 
@@ -104,8 +117,12 @@ Keep the setup only if quality stays equal or improves. `AGENTS.md` is behaviora
 
 ## References
 
-- [OpenAI GPT-5.6 model and prompting guidance](https://developers.openai.com/api/docs/guides/latest-model)
-- [OpenAI model catalog](https://developers.openai.com/api/docs/models)
-- [OpenAI GPT-5.6 Luna model page](https://developers.openai.com/api/docs/models/gpt-5.6-luna)
+- [OpenAI current model guidance](https://developers.openai.com/api/docs/guides/latest-model)
+- [OpenAI GPT-6.1 Sol model page](https://developers.openai.com/api/docs/models/gpt-6.1-sol)
+- [OpenAI GPT-6 Luna model page](https://developers.openai.com/api/docs/models/gpt-6-luna)
+- [Responses API multi-agent](https://developers.openai.com/api/docs/guides/responses-multi-agent)
+- [Codex models and availability](https://learn.chatgpt.com/docs/models)
+- [Codex subagents and custom agents](https://learn.chatgpt.com/docs/agent-configuration/subagents)
+- [Codex configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference)
 
-OpenAI reports directional token and cost improvements from leaner prompts in internal evaluations, but those figures are not a guaranteed savings estimate for this workflow. Validate on your own workload.
+Checked October 7, 2026. These are live documentation links; retain the dated verification record when their recommendations change.
